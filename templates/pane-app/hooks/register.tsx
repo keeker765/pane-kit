@@ -149,16 +149,18 @@ export const register: Register = on => {
     const bodyRows = e.props.scroll?.bodyRows ?? e.viewport?.rows ?? 24
     // 页眉、页签、卡片边框与标题占了固定几行，剩下的才是列表窗口
     const rows = Math.max(3, bodyRows - 6)
+    // 换页签时回到列表顶部，否则新页签会停在上一个页签的滚动位置
+    const switchTab = (id: string) => {
+      void update($, tab, () => id)
+      void update($, scroll, () => INITIAL_SCROLL)
+    }
     return renderBoard({
       kit,
       data,
       poll,
       active,
-      // 换页签时回到列表顶部，否则新页签会停在上一个页签的滚动位置
-      onTab: id => {
-        void update($, tab, () => id)
-        void update($, scroll, () => INITIAL_SCROLL)
-      },
+      onTab: switchTab,
+      onJump: switchTab,
       columns: bodyColumns,
       scroll: { offset: position.offset, rows },
       // 点滚动条第几格就跳到哪一行；拖动走 Client 的 ui.message

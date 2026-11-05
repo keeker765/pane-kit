@@ -7,7 +7,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { bigChart, columnChart, lineChart, sparkline } from '../kit/chart'
-import type { Item } from '../kit/model'
+import { parseSnapshot, type Item } from '../kit/model'
 import { scrollBarCells, seekOffset } from '../kit/scroll'
 import { buildTree } from '../kit/tree'
 import { clipToWidth, displayWidth } from '../kit/width'
@@ -69,4 +69,11 @@ test('整块柱状图柱与间隔各占一格', async () => {
   expect(rows.length).toBe(2)
   expect(rows[0][1]).toBe(' ')
   expect(rows[0].length).toBeLessThanOrEqual(5)
+})
+
+test('条目可以带跳转目标', async () => {
+  const text = JSON.stringify({
+    sections: [{ id: 'a', title: 'A', items: [{ id: 'x', label: 'X', target: 'b' }] }],
+  })
+  expect(parseSnapshot(text).sections[0].items[0].target).toBe('b')
 })

@@ -58,6 +58,8 @@ export type TreeProps = {
   collapsed: readonly string[]
   /** 点一下三角时调用；调用方负责写 atom。 */
   onToggle: (id: string) => void
+  /** 点带 `target` 的叶子行时调用；不传则这些行不可点。 */
+  onJump?: (target: string) => void
   /** 文字可用列数，含缩进与符号；默认 40。 */
   columns?: number
 }
@@ -68,6 +70,7 @@ function renderTreeRow(
   row: TreeRow,
   columns: number,
   onToggle: (id: string) => void,
+  onJump?: (target: string) => void,
 ): RenderElement {
   const { Box, Text, Button } = table
   const tone = stateOf(row.item)
@@ -84,7 +87,7 @@ function renderTreeRow(
     </Text>
   )
   const label = <Text key="label">{text}</Text>
-  // 有子节点的行整行可点；叶子行没有可折叠的东西，不做成按钮
+  // 有子节点的行整行可点；叶子行没有可折叠的东西，只有带 target 时才做成按钮
   if (row.hasChildren) {
     return (
       <Box key={row.item.id} marginLeft={row.depth * 2}>
@@ -92,6 +95,19 @@ function renderTreeRow(
           {triangle}
           {mark}
           {label}
+        </Button>
+      </Box>
+    )
+  }
+  const target = row.item.target
+  if (target !== undefined && onJump !== undefined) {
+    return (
+      <Box key={row.item.id} marginLeft={row.depth * 2}>
+        <Button key={`${row.item.id}-jump`} plain onPress={() => onJump(target)}>
+          {triangle}
+          {mark}
+          {label}
+          <Text dimColor> ›</Text>
         </Button>
       </Box>
     )
@@ -112,7 +128,7 @@ export function renderTree(table: ElementTable, props: TreeProps): RenderElement
   const rows = buildTree(props.items, props.collapsed)
   return (
     <Box flexDirection="column">
-      {rows.map(row => renderTreeRow(table, row, columns, props.onToggle))}
+      {rows.map(row => renderTreeRow(table, row, columns, props.onToggle, props.onJump))}
     </Box>
   )
 }

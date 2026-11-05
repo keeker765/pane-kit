@@ -67,6 +67,7 @@ export function renderBoard(props: BoardProps): RenderElement {
               items={section.items}
               collapsed={props.collapsed}
               onToggle={props.onToggle}
+              onJump={props.onJump}
               columns={44}
             />
           ) : (
@@ -75,6 +76,7 @@ export function renderBoard(props: BoardProps): RenderElement {
               rows={scroll.rows}
               offset={scroll.offset}
               onSeek={props.onSeek}
+              onJump={props.onJump}
               draggable
             />
           )}

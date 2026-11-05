@@ -196,6 +196,8 @@ def render_tree_lines(items: list[dict[str, Any]], collapsed: list[str], inner: 
     for one, depth, has_children, opened in tree_rows(items, collapsed):
         triangle = ("▾" if opened else "▸") if has_children else " "
         body = "  " * depth + triangle + f" {TONE_MARK.get(one.get('state', 'todo'), '·')} {one.get('label', '')}"
+        if one.get("target"):
+            body += " ›"
         out.append("│ " + pad(body, inner) + " │")
     return out
 
@@ -270,6 +272,8 @@ def render(
             break
         tone = one.get("state", "todo")
         body = f"{TONE_MARK.get(tone, '·')} {one.get('label', '')}"
+        if one.get("target"):
+            body += " ›"
         lines.append("│ " + pad(body, inner - 2) + " " + bars[line] + " │")
         if cost == 2:
             lines.append("│   " + pad(meter_line(one["meter"]), inner - 2) + " " + bars[line + 1] + " │")

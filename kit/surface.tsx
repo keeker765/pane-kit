@@ -53,6 +53,8 @@ export type BoardProps = {
   active: string
   /** 切换页签；调用方负责写 atom。 */
   onTab: (id: string) => void
+  /** 点带 `target` 的条目时调用，参数是目标区块 id；通常与 `onTab` 同一份实现。 */
+  onJump?: (target: string) => void
   /** 文字可用列数；图表按它算宽，默认 60。 */
   columns?: number
   /** 列表窗口：首行行号与可见行数，交给 `kit.ScrollList`。 */

@@ -36,6 +36,8 @@ export type Item = {
   meter?: Meter
   /** 树里的层级，0 是顶层；省略按 0。比自己深的下一行算自己的子节点。 */
   depth?: number
+  /** 点这一行要跳到的区块 id；省略则不可点。 */
+  target?: string
   /** 第二行的补充说明。 */
   note?: string
   /** 发生时间，毫秒时间戳。 */
@@ -226,6 +228,7 @@ function readItem(value: unknown, index: number): Item {
   if (typeof value.progress === 'number') item.progress = clampInt(value.progress, 0, 100)
   if (isRecord(value.meter)) item.meter = readMeter(value.meter, index)
   if (typeof value.depth === 'number') item.depth = clampInt(value.depth, 0, 12)
+  if (typeof value.target === 'string' && value.target !== '') item.target = value.target
   if (typeof value.note === 'string') item.note = value.note
   if (typeof value.ts === 'number') item.ts = value.ts
   return item

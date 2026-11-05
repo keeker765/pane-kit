@@ -79,18 +79,38 @@ export type ScrollListProps = {
   bar?: boolean
   /** 点滚动条某一格时调用，参数是那一格对应的首行行号；不传则滚动条只显示不可点。 */
   onSeek?: (offset: number) => void
+  /** 点带 `target` 的条目时调用；不传则这些行不可点。 */
+  onJump?: (target: string) => void
   /** 换成可拖动的滚动条；接了 `ui.message` 才能收到拖出来的位置。 */
   draggable?: boolean
 }
 
-/** 画一行：状态符号 + 定宽截断的标签。 */
-function renderRow(table: ElementTable, item: Item, textWidth: number): RenderElement {
-  const { Box, Text } = table
+/** 画一行：状态符号 + 定宽截断的标签；带 target 时整行可点。 */
+function renderRow(
+  table: ElementTable,
+  item: Item,
+  textWidth: number,
+  onJump?: (target: string) => void,
+): RenderElement {
+  const { Box, Text, Button } = table
   const tone = stateOf(item)
+  const mark = <Text color={toneColor(tone)}>{TONE_MARK[tone]}</Text>
+  const label = <Text>{clipToWidth(` ${item.label}`, textWidth)}</Text>
+  const target = item.target
+  // 有跳转目标才做成按钮，行尾加箭头提示可点
+  if (target !== undefined && onJump !== undefined) {
+    return (
+      <Button key={`${item.id}-jump`} plain onPress={() => onJump(target)}>
+        {mark}
+        {label}
+        <Text dimColor> ›</Text>
+      </Button>
+    )
+  }
   return (
     <Box key={item.id} flexDirection="row">
-      <Text color={toneColor(tone)}>{TONE_MARK[tone]}</Text>
-      <Text>{clipToWidth(` ${item.label}`, textWidth)}</Text>
+      {mark}
+      {label}
     </Box>
   )
 }
@@ -154,7 +174,11 @@ export function renderScrollList(table: ElementTable, props: ScrollListProps): R
   for (const item of props.items.slice(offset)) {
     const cost = rowHeight(item)
     if (line + cost > rows) break
-    nodes.push(<Box key={`${item.id}-row`} flexDirection="row">{renderRow(table, item, textWidth)}</Box>)
+    nodes.push(
+      <Box key={`${item.id}-row`} flexDirection="row">
+        {renderRow(table, item, textWidth, props.onJump)}
+      </Box>,
+    )
     pushBar(line)
     if (cost === 2) {
       nodes.push(

@@ -6,7 +6,7 @@
       "title": "任务",
       "items": [
         { "id": "t1", "label": "读需求", "state": "done" },
-        { "id": "t2", "label": "画面板", "state": "doing", "progress": 40, "note": "第 2 轮",
+        { "id": "t2", "label": "画面板", "state": "doing", "progress": 40, "note": "第 2 轮", "target": "trend",
           "meter": { "done": 40, "total": 100, "eta": 3600, "samples": [0, 5, 14, 22, 31, 40] } },
         { "id": "t3", "label": "跑测试", "state": "todo" },
         { "id": "t4", "label": "等外部数据", "state": "blocked", "note": "上游 404" }
