@@ -29,6 +29,16 @@ export type Snapshot = {
   updated?: number
 }
 
+/** 列表窗口位置。 */
+export type ScrollPosition = {
+  /** 首行行号。 */
+  offset: number
+  /** 窗口能看到几行。 */
+  bodyRows: number
+  /** 整棵树几行。 */
+  contentRows: number
+}
+
 /** 轮询状态。 */
 export type SnapshotStatus = {
   kind: 'ok' | 'stale' | 'error'
@@ -47,6 +57,10 @@ declare module 'claude-code' {
       tab: Shaped<string>
       /** 每秒自增，驱动重绘。 */
       tick: Shaped<number>
+      /** 列表窗口位置；`ui.scroll` 钩子写它。 */
+      scroll: Shaped<ScrollPosition>
+      /** 已收起的树节点 id。 */
+      collapsed: Shaped<string[]>
     }
   }
 }

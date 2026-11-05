@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 NEW_SCRIPT = REPO_ROOT / "scripts" / "new.py"
 VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify.py"
 RECIPES_DIR = REPO_ROOT / "examples" / "recipes"
-RECIPES = ("json-board", "http-board", "session-hud")
+RECIPES = ("json-board", "http-board", "session-hud", "memory-board")
 
 
 def build(name: str, out_root: Path) -> Path:

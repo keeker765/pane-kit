@@ -57,6 +57,49 @@
 - 进度条宽度夹在 6–24 格。卡宽未知时用固定 12 格。
 - 任何 `Box` 里放长文本，都要设 `flexShrink={1}` 与 `Text wrap="wrap"`。
 
+### 行长告警
+
+折行交给 `Text wrap`；**发现**某行过长用 `kit/width.ts`：
+
+- `displayWidth(text)`：东亚宽字符按 2 格算，与终端一致。
+- `clipToWidth(text, cells)`：按格子截断并补省略号，不会切断半个宽字符。
+- 静态检查：`python scripts/verify.py <工程> --check-lines 60`，扫描 `app/` 下超宽的中文字符串并逐条列出。只告警，不算失败。
+
+## 滚动列表
+
+内容比面板高时用 `kit.ScrollList`，不要自己算行数：
+
+```tsx
+<kit.ScrollList items={rows} rows={bodyRows} offset={scroll.offset} columns={48} />
+```
+
+它只显示 `offset` 起的一段并画右侧滚动条（拇指 `█`、轨道 `│`）。**列表自己接管滚动**，
+所以接线处要挂 `ui.scroll` 且不调 `next`：
+
+```ts
+on('ui.scroll', { requestId: PANE }, async ($, e) => {
+  const now = await read($, scroll)
+  await update($, scroll, () => moveScroll(now, e.by, e.bodyRows, e.contentRows))
+  return {}
+})
+```
+
+⚠ 让引擎自己滚、只在旁边画拇指的做法做不到：拇指随内容滚走，看不到。要常驻的滚动条必须接管。
+
+传了 `onSeek` 时滚动条每格都是 `Button`：**鼠标点哪格就跳到哪**。不传则只显示。
+拖动需要 `Client` 元素与一个独立的绘制面模块，比这个重得多，暂不提供。
+
+## 可折叠的计划树
+
+```tsx
+<kit.Tree items={rows} collapsed={closed} onToggle={id => toggle(id)} columns={40} />
+```
+
+- 层级由每条自己的 `depth` 表达：下一行比自己深，就是自己的子节点。不再单独写父子表。
+- 有子节点的行画 `▾`/`▸` 且整行是 `Button`，能点也能用键盘激活；叶子行只是文字。
+- `collapsed` 是已收起的 id 数组，由调用方存在 atom 里；`onToggle` 里写它。
+- 收起的节点，其后代整段不画，数据一条都不删。
+
 ## 页眉
 
 页眉一行：`head` + 轮询状态 + 数据年龄。不要堆标题、副标题、时间三行，占高度。

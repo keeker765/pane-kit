@@ -6,7 +6,8 @@
       "title": "任务",
       "items": [
         { "id": "t1", "label": "读需求", "state": "done" },
-        { "id": "t2", "label": "画面板", "state": "doing", "progress": 40, "note": "第 2 轮" },
+        { "id": "t2", "label": "画面板", "state": "doing", "progress": 40, "note": "第 2 轮",
+          "meter": { "done": 40, "total": 100, "eta": 3600, "samples": [0, 5, 14, 22, 31, 40] } },
         { "id": "t3", "label": "跑测试", "state": "todo" },
         { "id": "t4", "label": "等外部数据", "state": "blocked", "note": "上游 404" }
       ]
@@ -17,6 +18,16 @@
       "items": [
         { "id": "i1", "label": "窄终端下面板不显示", "state": "todo" }
       ]
+    },
+    {
+      "id": "trend",
+      "title": "趋势",
+      "items": [],
+      "chart": {
+        "kind": "line",
+        "values": [0, 2, 5, 9, 14, 20, 27, 35, 44, 54, 65, 77],
+        "note": "每分钟完成数"
+      }
     }
   ]
 }

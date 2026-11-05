@@ -20,15 +20,21 @@ function statusLine(props: BoardProps): string {
   return poll.kind === 'stale' ? `数据陈旧${reason}` : `错误${reason}`
 }
 
+/** 区块里只要有一条带层级，就整块按树画。 */
+function isTree(items: readonly { depth?: number }[]): boolean {
+  return items.some(one => (one.depth ?? 0) > 0)
+}
+
 /** 画整块看板。 */
 export function renderBoard(props: BoardProps): RenderElement {
-  const { kit, data, active, onTab } = props
+  const { kit, data, active, onTab, scroll } = props
   const pages = data.sections.map(section => ({ id: section.id, label: section.title }))
   const firstId = pages[0]?.id ?? ''
   const currentId = pages.some(page => page.id === active) ? active : firstId
   const section = data.sections.find(one => one.id === currentId)
   const done = section?.items.filter(one => (one.state ?? 'todo') === 'done').length ?? 0
   const total = section?.items.length ?? 0
+  const columns = Math.max(24, props.columns ?? 60)
   return (
     <kit.Box flexDirection="column">
       <kit.Box flexDirection="row">
@@ -39,8 +45,39 @@ export function renderBoard(props: BoardProps): RenderElement {
       {section === undefined ? (
         <kit.Text dimColor>还没有数据。</kit.Text>
       ) : (
-        <kit.Card title={section.title} subtitle={`${done}/${total} 完成`}>
-          <kit.TaskList items={section.items} />
+        <kit.Card
+          title={section.title}
+          subtitle={
+            section.chart === undefined
+              ? `${done}/${total} 完成`
+              : `${section.chart.kind === 'line' ? '折线' : '柱状'} · ${section.chart.values.length} 点`
+          }
+        >
+          {/* 区块带 chart 就整块画图；其余按树或列表画 */}
+          {section.chart !== undefined ? (
+            <kit.Chart
+              kind={section.chart.kind}
+              values={section.chart.values}
+              width={columns - 6}
+              height={section.chart.height ?? Math.min(8, Math.max(2, scroll.rows - 2))}
+              note={section.chart.note}
+            />
+          ) : isTree(section.items) ? (
+            <kit.Tree
+              items={section.items}
+              collapsed={props.collapsed}
+              onToggle={props.onToggle}
+              columns={44}
+            />
+          ) : (
+            <kit.ScrollList
+              items={section.items}
+              rows={scroll.rows}
+              offset={scroll.offset}
+              onSeek={props.onSeek}
+              draggable
+            />
+          )}
         </kit.Card>
       )}
     </kit.Box>

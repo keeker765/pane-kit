@@ -7,7 +7,8 @@
 
 import type { ElementTable, RenderElement } from 'claude-code'
 
-import { byState, stateOf, TONE_MARK, toneColor, type Item } from './model'
+import { sparkline } from './chart'
+import { byState, meterText, progressBar, stateOf, TONE_MARK, toneColor, type Item } from './model'
 
 /** 任务列表的输入。 */
 export type TaskListProps = {
@@ -28,6 +29,15 @@ function renderTaskRow(table: ElementTable, item: Item): RenderElement {
       </Box>
       <Box flexShrink={1} flexDirection="column" marginLeft={1}>
         <Text wrap="wrap">{item.label}</Text>
+        {item.meter !== undefined && (
+          <Box flexDirection="row">
+            <Text color="success">{progressBar(item.meter.done, item.meter.total, 10)}</Text>
+            <Text dimColor> {meterText(item.meter)}</Text>
+            {item.meter.samples !== undefined && (
+              <Text color="success"> {sparkline(item.meter.samples)}</Text>
+            )}
+          </Box>
+        )}
         {item.note !== undefined && (
           <Text dimColor wrap="wrap">
             └ {item.note}

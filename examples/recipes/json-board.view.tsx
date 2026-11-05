@@ -19,7 +19,7 @@ function statusLine(props: BoardProps): string {
 
 /** 画整块看板。 */
 export function renderBoard(props: BoardProps): RenderElement {
-  const { kit, data, active, onTab } = props
+  const { kit, data, active, onTab, scroll } = props
   const pages = data.sections.map(section => ({ id: section.id, label: section.title }))
   const firstId = pages[0]?.id ?? ''
   const currentId = pages.some(page => page.id === active) ? active : firstId
@@ -37,7 +37,7 @@ export function renderBoard(props: BoardProps): RenderElement {
         <kit.Text dimColor>还没有数据。</kit.Text>
       ) : (
         <kit.Card title={section.title} subtitle={`${done}/${total} 完成`}>
-          <kit.TaskList items={section.items} />
+          <kit.ScrollList items={section.items} rows={scroll.rows} offset={scroll.offset} />
         </kit.Card>
       )}
     </kit.Box>

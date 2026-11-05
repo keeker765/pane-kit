@@ -7,6 +7,9 @@
 | json-board | 文件轮询 | Tabs、Card、TaskList |
 | http-board | HTTP 轮询 | Tabs、Card、TaskList |
 | session-hud | 引擎会话数据 | StatTile、Card、Meter |
+| memory-board | 直接读记忆目录：索引 + 各枢纽 | Tabs、Card、TaskList、Meter |
+
+memory-board 里 `MEMORY_DIR` 常量指向自己的记忆目录；改那一行就能画别人的看板。
 
 生成并校验全部示例：
 
