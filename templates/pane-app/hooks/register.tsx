@@ -143,8 +143,12 @@ export const register: Register = on => {
     const position = await read($, scroll)
     const closed = await read($, collapsed)
     const kit = createKit($.ui.resolve(e))
+    // 按面板正文排版，不能按终端尺寸：终端列数包含左侧对话区，
+    // 照它画图会超出面板并被折行
+    const bodyColumns = e.props.bodyColumns
+    const bodyRows = e.props.scroll?.bodyRows ?? e.viewport?.rows ?? 24
     // 页眉、页签、卡片边框与标题占了固定几行，剩下的才是列表窗口
-    const rows = Math.max(3, (e.viewport?.rows ?? 24) - 9)
+    const rows = Math.max(3, bodyRows - 6)
     return renderBoard({
       kit,
       data,
@@ -155,7 +159,7 @@ export const register: Register = on => {
         void update($, tab, () => id)
         void update($, scroll, () => INITIAL_SCROLL)
       },
-      columns: e.viewport?.columns ?? 80,
+      columns: bodyColumns,
       scroll: { offset: position.offset, rows },
       // 点滚动条第几格就跳到哪一行；拖动走 Client 的 ui.message
       onSeek: target => {
