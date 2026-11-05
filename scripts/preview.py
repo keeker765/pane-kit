@@ -22,7 +22,6 @@ CHROME_ROWS = 9
 TONE_MARK = {"done": "✓", "doing": "▶", "blocked": "⏸", "todo": "·"}
 SPARK_BLOCKS = "▁▂▃▄▅▆▇█"
 COLUMN_UNITS = " ▁▂▃▄▅▆▇█"
-DOT_BITS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
 SPARK_WIDTH = 12
 
 
@@ -139,56 +138,16 @@ def column_chart(values: list[float], height: int) -> list[str]:
     return out
 
 
-def js_round(value: float) -> int:
-    """JS `Math.round` 的口径：.5 一律向上。"""
-    return int(value + 0.5)
-
-
-def draw_segment(grid: list[list[int]], start: tuple[int, int], end: tuple[int, int]) -> None:
-    """在点阵上连一条线；按较长的一轴步进。"""
-    dx = end[0] - start[0]
-    dy = end[1] - start[1]
-    steps = max(abs(dx), abs(dy))
-    for step in range(steps + 1):
-        ratio = 0 if steps == 0 else step / steps
-        grid[js_round(start[1] + dy * ratio)][js_round(start[0] + dx * ratio)] = 1
-
-
 def line_chart(values: list[float], height: int) -> list[str]:
-    """与 `kit/chart.tsx` 的 lineChart 同一套算法：2×4 盲文点阵。"""
-    rows = max(2, min(12, height))
-    if not values:
-        return []
-    peak = max(max(values), 1.0)
-    dot_width = len(values) * 2
-    dot_height = rows * 4
-    grid = [[0] * dot_width for _ in range(dot_height)]
-    previous = (0, dot_height - 1)
-    last = max(1, len(values) - 1)
-    for index, one in enumerate(values):
-        point = (
-            js_round(index / last * (dot_width - 1)),
-            max(0, min(dot_height - 1, dot_height - 1 - js_round(one / peak * (dot_height - 1)))),
-        )
-        if index == 0:
-            grid[point[1]][point[0]] = 1
-        else:
-            draw_segment(grid, previous, point)
-        previous = point
-    return [braille_row(grid, row, len(values)) for row in range(rows)]
+    """与 `kit/chart.tsx` 的 lineChart 同一套算法：实心面积图。"""
+    return column_chart(values, height)
 
 
-def braille_row(grid: list[list[int]], row: int, cells: int) -> str:
-    """把一行的 2×4 点阵合成盲文字符；没有点的格子退回空格。"""
-    out = []
-    for col in range(cells):
-        code = 0
-        for dy in range(4):
-            for dx in range(2):
-                if grid[row * 4 + dy][col * 2 + dx]:
-                    code |= DOT_BITS[dy][dx]
-        out.append(" " if code == 0 else chr(0x2800 + code))
-    return "".join(out)
+def big_chart(values: list[float], width: int, height: int) -> list[str]:
+    """与 `kit/chart.tsx` 的 bigChart 同一套算法：柱宽一格、间隔一格。"""
+    columns = max(1, width // 2)
+    rows = column_chart(fit_width(values, columns), height)
+    return ["".join(f"{cell} " for cell in row).rstrip() for row in rows]
 
 
 def chart_lines(chart: dict[str, Any], width: int, height: int) -> list[str]:
@@ -196,10 +155,11 @@ def chart_lines(chart: dict[str, Any], width: int, height: int) -> list[str]:
     values = chart.get("values")
     if not isinstance(values, list) or not values:
         return []
-    shown = fit_width(reduce_values(values, 480), max(4, min(120, width)))
+    clean = reduce_values(values, 480)
+    cells = max(4, min(120, width))
     if chart.get("kind") == "line":
-        return line_chart(shown, height)
-    return column_chart(shown, height)
+        return line_chart(fit_width(clean, cells), height)
+    return big_chart(clean, cells, height)
 
 
 def meter_line(meter: dict[str, Any]) -> str:
@@ -284,7 +244,7 @@ def render(
     chart = raw_chart if isinstance(raw_chart, dict) else None
     subtitle = f"{done}/{len(items)} 完成"
     if chart is not None:
-        kind = "折线" if chart.get("kind") == "line" else "柱状"
+        kind = "走势" if chart.get("kind") == "line" else "柱状"
         subtitle = f"{kind} · {len(chart.get('values') or [])} 点"
     lines.append("│ " + pad(subtitle, inner) + " │")
 

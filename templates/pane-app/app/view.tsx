@@ -50,7 +50,7 @@ export function renderBoard(props: BoardProps): RenderElement {
           subtitle={
             section.chart === undefined
               ? `${done}/${total} 完成`
-              : `${section.chart.kind === 'line' ? '折线' : '柱状'} · ${section.chart.values.length} 点`
+              : `${section.chart.kind === 'line' ? '走势' : '柱状'} · ${section.chart.values.length} 点`
           }
         >
           {/* 区块带 chart 就整块画图；其余按树或列表画 */}

@@ -81,7 +81,7 @@ pane-kit/
 单独的图表用 `kit.Sparkline`（一行折线）与 `kit.Columns`（纵向柱状），
 参数是 `{ values, width / height, label, color }`。
 
-整块图表放进区块的 `chart` 字段，`items` 留空。`kind` 取 `line` 或 `columns`。
+整块图表放进区块的 `chart` 字段，`items` 留空。`kind` 取 `line`（实心面积图，轮廓跟数据）或 `columns`（柱宽一格、间隔一格）。
 
 ```json
 { "id": "trend", "title": "趋势", "items": [],
