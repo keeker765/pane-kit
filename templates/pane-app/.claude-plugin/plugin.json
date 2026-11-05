@@ -1,0 +1,10 @@
+{
+  "name": "pane-app",
+  "version": "0.1.0",
+  "description": "A terminal pane built with pane-kit",
+  "author": {
+    "name": "keeker765"
+  },
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}
