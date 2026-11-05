@@ -59,7 +59,7 @@ export function renderBoard(props: BoardProps): RenderElement {
               kind={section.chart.kind}
               values={section.chart.values}
               width={columns - 6}
-              height={section.chart.height ?? Math.min(8, Math.max(2, scroll.rows - 2))}
+              height={section.chart.height ?? Math.min(12, Math.max(2, scroll.rows - 2))}
               note={section.chart.note}
             />
           ) : isTree(section.items) ? (

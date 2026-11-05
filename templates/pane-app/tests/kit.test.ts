@@ -57,11 +57,11 @@ test('柱状图峰值列顶行满格，零值列留空', async () => {
   expect(rows[0][0]).toBe(' ')
 })
 
-test('整块折线底部起点与顶部峰值对齐', async () => {
+test('整块折线底部起点与顶部峰值都落点', async () => {
   const rows = lineChart([0, 5, 10], 4, 4)
   expect(rows.length).toBe(4)
-  expect(rows[3][0]).toBe('█')
-  expect(rows[0][3]).toBe('█')
+  expect(rows[3][0] === ' ').toBe(false)
+  expect(rows[0][3] === ' ').toBe(false)
 })
 
 test('整块柱状图铺满指定宽度', async () => {

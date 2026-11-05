@@ -15,6 +15,13 @@ import { clampInt } from './model'
 const SPARK_BLOCKS = '▁▂▃▄▅▆▇█'
 /** 柱状图的九级：下标 0 是空格，其余与折线同高。 */
 const COLUMN_UNITS = ' ▁▂▃▄▅▆▇█'
+/** 盲文点阵的位：四行两列，行内先左后右。 */
+const DOT_BITS: readonly (readonly number[])[] = [
+  [0x01, 0x08],
+  [0x02, 0x10],
+  [0x04, 0x20],
+  [0x40, 0x80],
+]
 /** 折线默认宽度，单位格；进度行里也用它。 */
 export const SPARK_WIDTH = 12
 
@@ -75,26 +82,55 @@ export function columnChart(values: readonly number[], height: number = 4): read
   })
 }
 
-/** 画整块折线图，返回从顶到底的各行；相邻两点的落差用竖线补连。 */
+/** 在点阵上连一条线；按较长的一轴步进，避免断点。 */
+function drawSegment(grid: number[][], from: { x: number; y: number }, to: { x: number; y: number }): void {
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const steps = Math.max(Math.abs(dx), Math.abs(dy))
+  for (let step = 0; step <= steps; step += 1) {
+    const ratio = steps === 0 ? 0 : step / steps
+    grid[Math.round(from.y + dy * ratio)][Math.round(from.x + dx * ratio)] = 1
+  }
+}
+
+/**
+ * 画整块折线图，返回从顶到底的各行。
+ *
+ * 每个字符内部是 2×4 的盲文点阵，横向一格折线占两个点、纵向占四个点，
+ * 比一行一个整块字符平滑得多；空点画空格。
+ */
 export function lineChart(values: readonly number[], width: number = 40, height: number = 6): readonly string[] {
   const cells = clampInt(width, 4, 120)
   const rows = clampInt(height, 2, 12)
   const shown = fitWidth(readValues(values), cells)
   if (shown.length === 0) return []
   const peak = Math.max(...shown, 1)
-  const grid = Array.from({ length: rows }, () => Array.from({ length: shown.length }, () => ' '))
-  // 上一个点所在的行；第一个点从底部起算
-  let previous = rows - 1
-  shown.forEach((one, x) => {
-    const y = clampInt(rows - 1 - Math.round((one / peak) * (rows - 1)), 0, rows - 1)
-    // 跳变处补竖线，整条线看起来才连续
-    const top = Math.min(previous, y)
-    const bottom = Math.max(previous, y)
-    for (let fill = top + 1; fill < bottom; fill += 1) grid[fill][x] = '│'
-    grid[y][x] = '█'
-    previous = y
+  const dotWidth = cells * 2
+  const dotHeight = rows * 4
+  const grid = Array.from({ length: dotHeight }, () => Array.from({ length: dotWidth }, () => 0))
+  // 上一个点；第一个点从底边起算，其余与它连成线段
+  let previous = { x: 0, y: dotHeight - 1 }
+  shown.forEach((one, index) => {
+    const point = {
+      x: Math.round((index / Math.max(1, cells - 1)) * (dotWidth - 1)),
+      y: clampInt(dotHeight - 1 - Math.round((one / peak) * (dotHeight - 1)), 0, dotHeight - 1),
+    }
+    if (index === 0) grid[point.y][point.x] = 1
+    else drawSegment(grid, previous, point)
+    previous = point
   })
-  return grid.map(row => row.join(''))
+  // 2×4 点阵合成一个盲文格；没有点的格子退回空格
+  return Array.from({ length: rows }, (_unused, row) =>
+    Array.from({ length: cells }, (_cell, col) => {
+      let code = 0
+      for (let dy = 0; dy < 4; dy += 1) {
+        for (let dx = 0; dx < 2; dx += 1) {
+          if (grid[row * 4 + dy][col * 2 + dx] === 1) code |= DOT_BITS[dy][dx]
+        }
+      }
+      return code === 0 ? ' ' : String.fromCharCode(0x2800 + code)
+    }).join(''),
+  )
 }
 
 /** 画整块柱状图；先把序列铺满 `width` 列，再按 `height` 行画。 */
@@ -164,7 +200,8 @@ export function renderChart(table: ElementTable, props: ChartProps): RenderEleme
   return (
     <Box flexDirection="column">
       {rows.map((line, index) => (
-        <Text key={`chart-${index}`} color={props.color ?? 'success'}>
+        // 不指定颜色时沿用正常文字色；盲文点稀疏，绿色在深色背景上偏淡
+        <Text key={`chart-${index}`} color={props.color}>
           {line}
         </Text>
       ))}
