@@ -37,6 +37,9 @@ const status = atom(
 const tab = atom({ plugin: 'pane-app', key: 'tab' } as const, '', { shape: 'tab-1' })
 const tick = atom({ plugin: 'pane-app', key: 'tick' } as const, 0, { shape: 'tick-1' })
 
+/** 窄终端补开只做一次：会话起手没开成，就在第一条消息提交时补。 */
+let promptOpened = false
+
 /** 打开面板；已打开时只重设标题。 */
 async function openPane($: Engine): Promise<void> {
   await $.ui.open({ id: PANE, title: '面板', backgroundColor: 'transparent' })
@@ -58,6 +61,17 @@ export const register: Register = on => {
         await update($, status, () => value)
       },
     }).start()
+    return next(e)
+  })
+
+  // 自动打开要 144 列；窄终端下引擎拒绝，面板就无处可画。
+  // prompt.submit 算「被要求打开」，任何宽度都能显示，所以这里补一次。
+  on('prompt.submit', async ($, e, next) => {
+    if (!promptOpened) {
+      promptOpened = true
+      const panes = await $.ui.panes()
+      if (!panes.some(pane => pane.id === PANE)) await openPane($)
+    }
     return next(e)
   })
 
